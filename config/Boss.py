@@ -1,2 +1,2 @@
 while True:
-  print('WAIT 0')
+  print('MOVE 0 0 0')

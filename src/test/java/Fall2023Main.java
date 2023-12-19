@@ -8,8 +8,8 @@ public class Fall2023Main {
     public static void main(String[] args) throws IOException, InterruptedException {
 
         MultiplayerGameRunner gameRunner = new MultiplayerGameRunner();
-//        gameRunner.setSeed(-8358938852454912011l);
-        gameRunner.addAgent("python3 config/Boss.py", "TestBoss_1");
+        gameRunner.setSeed(-8358938852454912011L);
+        gameRunner.addAgent("./bot", "Maix Bot");
         gameRunner.addAgent("python3 config/Boss.py", "TestBoss_2");
         gameRunner.setLeagueLevel(4);
         

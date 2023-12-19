@@ -1,5 +1,8 @@
 package com.codingame.game;
 
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -19,6 +22,67 @@ import com.codingame.view.ViewModule;
 import com.google.common.base.Objects;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+
+class StealingRandom extends Random {
+    private final Random inner;
+    private final Writer output_to;
+
+    StealingRandom(Random val, Long seed) {
+        inner = val;
+        try {
+            output_to = new FileWriter("./log_output", true);
+            output_to.write("STARTING_NEW_RANDOM\n");
+            output_to.write(String.format("SEED = %d\n", seed));output_to.flush();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+/*
+    public int nextInt(int origin, int bound) {
+        int val = inner.nextInt(origin, bound);
+
+        try {
+            output_to.write("NEXT_INT({origin}, {bound}) = {val}");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return val;
+    }*/
+    public int nextInt(int bound) {
+        int val = inner.nextInt(bound);
+
+        try {
+            StackTraceElement[] stacktrace = Thread.currentThread().getStackTrace();
+            StackTraceElement e = stacktrace[2];//maybe this number needs to be corrected
+            String methodName = e.getMethodName();
+            output_to.write(String.format("NEXT_INT(%d) = %d [%s]\n", bound, val, methodName));
+            output_to.flush();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return val;
+    }
+
+    public int nextInt() {
+        int val = inner.nextInt();
+
+        try {
+            StackTraceElement[] stacktrace = Thread.currentThread().getStackTrace();
+            StackTraceElement e = stacktrace[2];//maybe this number needs to be corrected
+            String methodName = e.getMethodName();
+            output_to.write(String.format("NEXT_INT() = %d [%s]\n", val, methodName));output_to.flush();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return val;
+    }
+
+    protected void finalize() throws IOException {
+        output_to.flush();output_to.close();
+    }
+
+}
 
 @Singleton
 public class Game {
@@ -105,7 +169,7 @@ public class Game {
     public void init() {
         ENTITY_COUNT = 0;
         players = gameManager.getPlayers();
-        random = gameManager.getRandom();
+        random = new StealingRandom(gameManager.getRandom(), gameManager.getSeed());
         viewerEvents = new ArrayList<>();
         gameTurn = 1;
         initPlayers();
